@@ -7,12 +7,17 @@
     "dev": "node --watch server.js",
     "start": "node server.js"
   },
-  "keywords": ["api", "express", "campaign"],
+  "keywords": [
+    "api",
+    "express",
+    "campaign"
+  ],
   "author": "Johnson Group",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.18.2",
     "express-core-validator": "^1.0.0",
-    "cors": "^2.8.5"
+    "vue3-toastify": "^0.2.8"
   }
 }

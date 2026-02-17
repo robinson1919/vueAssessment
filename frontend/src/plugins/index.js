@@ -1,6 +1,10 @@
 import vuetify from './vuetify/index'
 
+import { useAppStore } from '@/stores/app'
+
 export function registerPlugins (app) {
-  app
-    .use(vuetify)
+  const store = useAppStore();
+  store.loadCampaign();
+  
+  app.use(vuetify)
 }

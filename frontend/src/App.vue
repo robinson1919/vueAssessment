@@ -8,6 +8,8 @@
         </nav>
       </div>
     </header>
+
+    <Loader loaderType="spinner-message" v-if="loading == true"/>
     
     <main class="app-main">
       <router-view />
@@ -21,8 +23,27 @@
   </v-app>
 </template>
 
-<script setup>
-// App component - Main layout wrapper
+<script>
+import Loader from './components/UI/loading.vue';
+import {useAppStore} from '@/stores/app'
+import { mapState } from "pinia";
+
+export default {
+  name: 'App',
+  components: {
+    Loader
+  },
+  data: () => ({
+    
+  }),
+  computed: {
+    ...mapState(useAppStore, {
+      loading: state => state.loading,
+    })
+  },
+  methods: {
+  }
+}
 </script>
 
 <style scoped>

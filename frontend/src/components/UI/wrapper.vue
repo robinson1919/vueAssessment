@@ -6,7 +6,6 @@
     <v-card-title class="d-flex align-center pt-4">
       <v-row class="mx-0 my-0 d-flex align-center justify-space-between" no-gutters>
         
-        <!-- v-if="hasTitle || hasHeading || btnTitle || addFilter || $slots.title || $slots.subtitle || $slots.heading" -->
         <v-col 
           :cols="isMobile ? 12 : leftColumn"
           class="d-flex align-center justify-start position-relative py-0 pl-0"      
@@ -68,13 +67,6 @@
           </div>      
         </v-col>
 
-        <!-- <v-col 
-          :cols="isMobile ? 6 : 1"
-          class="align-title"
-        >
-          
-        </v-col> -->
-
         <v-spacer v-if="spacer"></v-spacer>
         <v-col
           cols="12"
@@ -82,97 +74,9 @@
           :md="fullSearchBar ? 12 : rightColumn"
           class="colSerch mt-2 mt-md-0 mt-lg-0 pt-0 mx-0 px-0"
         > 
-          <v-row class="my-0 mx-0 py-0 px-0 d-flex align-end">
-          
-            <v-btn   
-              v-if="addFilter"       
-              fab
-              small
-              elevation="2"
-              height="44"
-              width="44"
-              color="primary" 
-              class="mr-5" 
-              @click.stop="showMenuFn()"
-            >
-              <v-icon>mdi-filter</v-icon>
-            </v-btn>
-
-            <v-col 
-              v-if="showMenu"
-              sm="2"
-              md="2"
-              lg="2"
-              cols="6"
-              class="filter-menu elevation-1 rounded-lg"
-            >
-              <v-list>
-                <v-list-item v-for="(item, index) in listFilter" :key="index" class="list-item" @click.stop="showFilters(item)">
-                  <p>
-                    {{item.name}}
-                  </p>
-                </v-list-item>
-              </v-list>
-                
-            </v-col> 
-
-            <v-col 
-              v-if="showCompanyFilter"
-              sm="2"
-              md="2"
-              lg="3"
-              cols="9"
-              class="filter-menu-company elevation-3 rounded-lg "
-            >
-              <v-autocomplete            
-                item-title="company_name"
-                item-value="company_id"
-                name="company"
-                label="Select a company"  
-                :items="companies"
-                v-model="companiesValues"
-                auto-select-first
-                clearable
-                deletable-chips
-                multiple
-                small-chips
-                return-object
-              ></v-autocomplete>
-            </v-col>
-
-            <v-col 
-              v-if="showDateFilter"
-              sm="3"
-              md="3"
-              lg="3"
-              cols="10"
-              class="filter-menu-dates elevation-1 rounded-lg"
-            >                   
-              <!-- <VueDatePicker 
-                ref="datePicker"                
-                color="secondary"
-                v-model="picker"
-                :model-value="picker"           
-                :range="{ minRange: 2 }"
-                :preset-dates="presetDates"
-                :clearable="false" 
-                :timezone="{ 
-                  timezone: 'America/Santo_Domingo',
-                  exactMatch: true,
-                  convertModel: true, 
-                  dateInTz: 'America/Santo_Domingo',
-                }"
-                inline       
-              >                
-                <template #action-buttons>
-                  <v-btn color="secondary" size="x-small" dark @click="showDateFilter = false">Close</v-btn>
-                  <v-btn class="ml-2" color="primary" size="x-small" dark @click="sendDates">Select</v-btn>
-                </template>
-              </VueDatePicker> -->
-            
-            </v-col>
-            
-            <v-text-field                           
+          <v-row class="my-0 mx-0 py-0 px-0 d-flex align-end">    
+            <v-text-field    
+              v-if="showSearch"                       
               placeholder="Search"
               variant="underlined"
               v-model.trim="search"
@@ -180,9 +84,9 @@
               clearable
               single-line
               hide-details
+              @click:clear="sendSearch"
               v-on:keydown.enter="sendSearch"                          
             > 
-            <!-- v-if="$vuetify.display.mdAndUp" -->
               <template                
                 v-slot:append
               >
@@ -202,30 +106,12 @@
               color="primary"
               dark
               :block="$vuetify.display.smAndDown"
-              @click="showModal"
+              @click="btnAction()"
             >
               {{ btnTitle }}
             </v-btn>  
           </v-row>
         </v-col>
-
-        <!-- <v-col
-          v-if="btnTitle"
-          cols="12"
-          sm="12"
-          md="2"
-          class="colSearch my-0 py-0 mx-0 px-0 d-flex justify-center"
-        > 
-          <v-btn            
-            class="ml-md-4 ml-lg-4"
-            color="primary"
-            dark
-            :block="$vuetify.display.smAndDown"
-            @click="showModal"
-          >
-            {{ btnTitle }}
-          </v-btn>   
-        </v-col> -->
       </v-row>
     </v-card-title>
 
@@ -242,13 +128,8 @@
 </template>
 
 <script>
-  // import { endOfMonth, endOfYear, startOfMonth, startOfYear, subMonths } from 'date-fns';
-  import {useAuthStore} from '@/stores/auth'
-  import { mapState } from "pinia";
   import { debounce } from '@/utils/debounce';
-  import { defineAsyncComponent } from 'vue'
-  const AppCard = defineAsyncComponent(() => import('@/components/app/Card'))
-  import _ from 'lodash';
+  import AppCard from '@/components/UI/Card.vue'
 
   export default {
     name: 'MaterialCard',
@@ -267,6 +148,7 @@
       filterIcon: String,
       addFilter: Boolean,
       fullSearchBar: Boolean,
+      showSearch: Boolean,
       spacer: {
         type: Boolean,
         default: true
@@ -285,32 +167,8 @@
       showCompanyFilter: false,
       showDateFilter: false,
       showMenu: false,
-      companiesValues: [],
-      picker: [
-        new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
-        new Date()
-      ],
-      // presetDates: [
-      //   { label: 'Today', value: [new Date(), new Date()] },
-      //   {
-      //     label: 'Today',
-      //     value: [new Date(), new Date()],
-      //     slot: 'preset-date-range-button'
-      //   },
-      //   { label: 'This month', value: [startOfMonth(new Date()), endOfMonth(new Date())] },
-      //   {
-      //     label: 'Last month',
-      //     value: [startOfMonth(subMonths(new Date(), 1)), endOfMonth(subMonths(new Date(), 1))],
-      //   },
-      //   { label: 'This year', value: [startOfYear(new Date()), endOfYear(new Date())] },
-      //   { label: 'A year back', value: [new Date(new Date().setFullYear(new Date().getFullYear() - 1)), new Date()] },
-      // ]
     }),
-    computed: {      
-      ...mapState(useAuthStore, {
-        role: state => state.user?.role,
-        AssistatIds: state => state.user.company_id
-      }),
+    computed: {
       hasHeading () {
         return !! (
           this.icon ||
@@ -326,24 +184,6 @@
           this.$slots.subtitle
         )
       },
-      isAdmin(){        
-        if(((this.role == 'Admin') || (this.role == 'super_user'))) return true
-        return false
-      },
-      listFilter(){
-        const list = [
-          {
-            name: 'Companies',
-            action: 'showCompanyFilter'
-          },
-          {
-            name: 'Date range',
-            action: 'showDateFilter'
-          }
-        ]
-        if(this.isAdmin) return list
-        return [list[1]]
-      },
       isMobile() {
         return this.$vuetify.display.smAndDown
       },
@@ -358,50 +198,24 @@
       reload(){
         this.$emit('reload')
       },
-      sendSearch: debounce(function (){
+      sendSearch: debounce(function (value){        
         this.emitSearch(); 
       }, 500),
-      showFilters({action}){
-        if(action == 'showCompanyFilter') {
-          this.showCompanyFilter = true
+      btnAction(){
+        if(this.btnTitle == 'New Campaign') {
+          this.$router.push({ path: '/campaigns/new' });
         }
-
-        if(action == 'showDateFilter') {
-          this.showDateFilter = true
-        }
-
-        this.showMenu = false
-      },
-      showMenuFn(){
-        if(this.showDateFilter === true){
-          this.showDateFilter = false
-          return
-        }
-
-        if(this.showCompanyFilter === true){
-          this.showCompanyFilter = false
-          return
-        }
-        this.showMenu = !this.showMenu
-      },
-      sendDates(){
-        this.$refs.datePicker.selectDate()
-        this.$emit('date', this.picker)
-        this.showDateFilter = false
-      },
+      }
     },
-    watch: {
-      search: debounce(function (){
+    watch: {      
+      search: debounce(function (value){
+        if(value.length == 0) {
+          this.emitSearch(); 
+          return
+        }
+        if(value == null || value == '' || value.length < 3) return
         this.emitSearch(); 
-      }, 500),
-      companies(){
-        this.companiesValues = this.companies;
-      },
-      companiesValues(){
-        const companiesID = this.companiesValues.map(val => val.company_id)
-        this.$emit('companiesID', companiesID)
-      },
-      
+      }, 500),      
     }
   }
 </script>
